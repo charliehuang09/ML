@@ -3,9 +3,9 @@
 # The `NEAT` section specifies parameters particular to the NEAT algorithm
 # or the experiment itself.  This is the only required section.
 [NEAT]
-fitness_criterion     = max
-fitness_threshold     = 3.98
-pop_size              = 500
+fitness_criterion     = min
+fitness_threshold     = 1000
+pop_size              = 100
 reset_on_extinction   = 0
 
 [DefaultGenome]
@@ -13,18 +13,18 @@ num_inputs              = 14
 num_hidden              = 2
 num_outputs             = 1
 initial_connection      = partial_direct 0.5
-feed_forward            = False
+feed_forward            = True
 compatibility_disjoint_coefficient = 1.0
 compatibility_weight_coefficient   = 0.6
 conn_add_prob           = 0.2
 conn_delete_prob        = 0.2
 node_add_prob           = 0.2
 node_delete_prob        = 0.2
-activation_default      = my_sinc_function
-activation_options      = sigmoid my_sinc_function
+activation_default      = relu
+activation_options      = sigmoid relu
 activation_mutate_rate  = 0.1
 aggregation_default     = sum
-aggregation_options     = sum my_l2norm_function
+aggregation_options     = sum
 aggregation_mutate_rate = 0.1
 bias_init_mean          = 0.0
 bias_init_stdev         = 1.0
@@ -52,11 +52,11 @@ enabled_default         = True
 enabled_mutate_rate     = 0.01
 
 [DefaultSpeciesSet]
-compatibility_threshold = 3.1
+compatibility_threshold = 3
 
 [DefaultStagnation]
 species_fitness_func = mean
-max_stagnation  = 20
+max_stagnation = 50
 
 [DefaultReproduction]
 elitism            = 5

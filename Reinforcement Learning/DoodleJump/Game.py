@@ -17,7 +17,6 @@ CHARECTER = pygame.image.load('/Users/charlie/ML/Reinforcement Learning/DoodleJu
 CHARECTER = pygame.transform.scale(CHARECTER, (64, 64))
 GREEN_OBSTACLE = pygame.image.load('/Users/charlie/ML/Reinforcement Learning/DoodleJump/Assets/Green_Obstacle.png')
 GREEN_OBSTACLE = pygame.transform.scale(GREEN_OBSTACLE, (128, 32))
-
 class Player:
     X_POS = 500
     Y_POS = 1000
@@ -87,90 +86,102 @@ class Obstacle:
 
 
 
-player = Player(CHARECTER)
-obstacles = []
-obstacles.append(Obstacle(GREEN_OBSTACLE, 500, 1100))
-obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(0, 1000), 900))
-obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(0, 1000), 700))
-obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(0, 1000), 500))#6
-obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(0, 1000), 300))
-obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(0, 1000), 100))
-score = 0
-speed = -0.1
-while(True):
-    SCREEN.fill((255,255,255))
-    player.update(speed)
+# player = Player(CHARECTER)
+# obstacles = []
+# obstacles.append(Obstacle(GREEN_OBSTACLE, 500, 1100))
+# obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(0, 1000), 900))
+# obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(0, 1000), 700))
+# obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(0, 1000), 500))#6
+# obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(0, 1000), 300))
+# obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(0, 1000), 100))
+# score = 0
+# speed = -0.1
+# while(True):
+#     SCREEN.fill((255,255,255))
+#     player.update(speed)
 
-    for obstacle in obstacles:
-        done = obstacle.draw(speed)
-        if player.rect.colliderect(obstacle.rect):
-            player.jump()
-        if (done):
-            obstacles.remove(obstacle)
-            obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(0, 1000), 0))
-            score += 1
-    pygame.display.update()
-    speed -= 0.001
-    CLOCK.tick(60)
+#     for obstacle in obstacles:
+#         done = obstacle.draw(speed)
+#         if player.rect.colliderect(obstacle.rect):
+#             player.jump()
+#         if (done):
+#             obstacles.remove(obstacle)
+#             obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(0, 1000), 0))
+#             score += 1
+#     pygame.display.update()
+#     speed -= 0.001
+#     CLOCK.tick(60)
 
 
-# def eval_genomes(genomes, config):
-#     global game_speed, x_pos_bg, y_pos_bg, obstacles, players, ge, nets, points
-#     obstacles = []
-#     players = []
-#     ge = []
-#     nets = []
-#     score = 0
-#     game_speed = 20
+def eval_genomes(genomes, config):
+    clock = pygame.time.Clock()
+    global game_speed, x_pos_bg, y_pos_bg, obstacles, players, ge, nets, points
+    obstacles = []
+    players = []
+    ge = []
+    nets = []
+    score = 0
+    game_speed = -0.1
 
-#     for genome_id, genome in genomes:
-#         players.append(player(CHARECTER))
-#         ge.append(genome)
-#         net = neat.nn.FeedForwardNetwork.create(genome, config)
-#         nets.append(net)
-#         genome.fitness = 0
+    obstacles.append(Obstacle(GREEN_OBSTACLE, 500, 1100))
+    obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(0, 1000), 900))
+    obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(0, 1000), 700))
+    obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(0, 1000), 500))
+    obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(0, 1000), 300))
+    obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(0, 1000), 100))
+    for genome_id, genome in genomes:
+        players.append(Player(CHARECTER))
+        ge.append(genome)
+        net = neat.nn.FeedForwardNetwork.create(genome, config)
+        nets.append(net)
+        genome.fitness = 0
 
-#     run = True
-#     while run:
-#         for event in pygame.event.get():
-#             if event.type == pygame.QUIT:
-#                 pygame.quit()
-#                 sys.exit()
+    run = True
+    while run:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
 
-#         SCREEN.fill((255,255,255))
-#         for player in players:
-#             player.update()
+        SCREEN.fill((255,255,255))
+        for player in players:
+            player.update(game_speed)
         
-#         if (len(players) == 0):
-#             break
+        if (len(players) == 0):
+            break
 
-#         for obstacle in obstacles:
-#             done = obstacle.draw(game_speed)
-#             if player.rect.colliderect(obstacle.rect):
-#                 player.jump()
-#             if (done):
-#                 obstacles.remove(obstacle)
-#                 obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(0, 1000), 0))
-#                 score += 1
+        for obstacle in obstacles:
+            done = obstacle.draw(game_speed)
+            if player.rect.colliderect(obstacle.rect):
+                player.jump()
+            if (done):
+                obstacles.remove(obstacle)
+                obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(0, 1000), 0))
+                score += 1
 
-#         obstacle_pos = []
-#         for obstacle in obstacles:
-#             obstacle_pos.append(obstacle.rect.x)
-#             obstacle_pos.append(obstacle.rect.y)
-#         for i, player in enumerate(players):
-#             output = nets[i].activate(player.X_POS / 100, player.Y_POS / 100, obstacle_pos)
-#             if output[0] > 0.5 and dinosaur.rect.y == dinosaur.Y_POS:
-#                 dinosaur.dino_jump = True
-#                 dinosaur.dino_run = False
+        for i, player in enumerate(players):
+            if player.Y_POS > 12000:
+                ge[i].fitness = (-game_speed) * 10
+                players.remove(player)
+                continue
+            output = nets[i].activate((((obstacles[0].rect.x - player.rect.x) / 100, (obstacles[1].rect.x - player.rect.x) / 100, (obstacles[2].rect.x - player.rect.x) / 100, (obstacles[3].rect.x - player.rect.x) / 100, (obstacles[4].rect.x - player.rect.x) / 100, (obstacles[5].rect.x - player.rect.x) / 100, (obstacles[0].rect.y - player.rect.y) / 100, (obstacles[1].rect.y - player.rect.y) / 100, (obstacles[2].rect.y - player.rect.y) / 100, (obstacles[3].rect.y - player.rect.y) / 100, (obstacles[4].rect.y - player.rect.y) / 100, (obstacles[5].rect.y - player.rect.y) / 100, player.rect.x / 100, player.rect.y / 100)))
+            if output[0] > 0.7:
+                player.left()
+            if output[0] < 0.3:
+                player.right()
+
+        pygame.display.update()
+        game_speed -= 0.001
+        # clock.tick(0)
         
 
-# global pop
-# config = neat.config.Config(
-#     neat.DefaultGenome,
-#     neat.DefaultReproduction,
-#     neat.DefaultSpeciesSet,
-#     neat.DefaultStagnation,
-#     config_path
-# )
-# pop = neat.Population(config)
-# pop.run(eval_genomes, 10000)
+global pop
+config = neat.config.Config(
+    neat.DefaultGenome,
+    neat.DefaultReproduction,
+    neat.DefaultSpeciesSet,
+    neat.DefaultStagnation,
+    config_path
+)
+pop = neat.Population(config)
+pop.run(eval_genomes, 1000000)
