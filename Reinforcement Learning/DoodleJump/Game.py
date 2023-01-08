@@ -34,7 +34,7 @@ class Player:
         self.x_min = -50
         self.x_max = 50
         self.rect = pygame.Rect(self.X_POS, self.Y_POS, img.get_width(), img.get_height())
-
+    
     def update(self, speed):
         offset = 0
         events = pygame.event.get()
@@ -43,11 +43,9 @@ class Player:
                 sys.exit()
         keys = pygame.key.get_pressed()
         if keys[pygame.K_a]:
-            self.xVelocity = min(0, self.xVelocity)
-            self.xVelocity -= self.xStrength
+            self.left()
         if keys[pygame.K_d]:
-            self.xVelocity = max(0, self.xVelocity)
-            self.xVelocity += self.xStrength
+            self.right()
         if keys[pygame.K_w]:
             self.jump()
         self.xVelocity *= 0.95
@@ -66,6 +64,14 @@ class Player:
         if self.yVelocity > 0:
             self.yVelocity = -self.yStrength
     
+    def left(self):
+        self.xVelocity = min(0, self.xVelocity)
+        self.xVelocity -= self.xStrength
+    
+    def right(self):
+        self.xVelocity = max(0, self.xVelocity)
+        self.xVelocity += self.xStrength
+
     def draw(self):
         SCREEN.blit(self.img, (self.rect.x, self.rect.y))
 
@@ -94,7 +100,6 @@ speed = -0.1
 while(True):
     SCREEN.fill((255,255,255))
     player.update(speed)
-    print(player.Y_POS)
 
     for obstacle in obstacles:
         done = obstacle.draw(speed)
