@@ -3,6 +3,7 @@ import time
 import sys
 import random
 import neat
+from scipy.special import softmax
 pygame.init()
 CLOCK = pygame.time.Clock()
 
@@ -32,6 +33,7 @@ class Player:
         self.y_limit = 400
         self.x_min = -50
         self.x_max = 50
+        self.score = 0
         self.rect = pygame.Rect(self.X_POS, self.Y_POS, img.get_width(), img.get_height())
     
     def update(self, speed):
@@ -162,16 +164,19 @@ def eval_genomes(genomes, config):
         for i, player in enumerate(players):
             if player.Y_POS > 12000:
                 ge[i].fitness = (-game_speed) * 10
+                print(ge[i].fitness)
                 players.remove(player)
                 continue
             output = nets[i].activate((((obstacles[0].rect.x - player.rect.x) / 100, (obstacles[1].rect.x - player.rect.x) / 100, (obstacles[2].rect.x - player.rect.x) / 100, (obstacles[3].rect.x - player.rect.x) / 100, (obstacles[4].rect.x - player.rect.x) / 100, (obstacles[5].rect.x - player.rect.x) / 100, (obstacles[0].rect.y - player.rect.y) / 100, (obstacles[1].rect.y - player.rect.y) / 100, (obstacles[2].rect.y - player.rect.y) / 100, (obstacles[3].rect.y - player.rect.y) / 100, (obstacles[4].rect.y - player.rect.y) / 100, (obstacles[5].rect.y - player.rect.y) / 100, player.rect.x / 100, player.rect.y / 100)))
-            if output[0] > 0.7:
+            move = output.index(max(output))
+            if move == 0:
                 player.left()
-            if output[0] < 0.3:
+            if move == 1:
                 player.right()
 
         pygame.display.update()
         game_speed -= 0.001
+        print(len(players))
         # clock.tick(0)
         
 
