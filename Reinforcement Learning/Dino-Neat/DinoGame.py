@@ -51,7 +51,7 @@ class Dinosaur:
         self.dino_rect.x = self.X_POS
         self.dino_rect.y = self.Y_POS
 
-    def update(self, userInput):
+    def update(self, s):
         if self.dino_duck:
             self.duck()
         if self.dino_run:

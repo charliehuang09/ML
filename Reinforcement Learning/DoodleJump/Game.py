@@ -3,7 +3,6 @@ import time
 import sys
 import random
 import neat
-from scipy.special import softmax
 generation = 0
 max_score = 0
 pygame.init()
@@ -52,12 +51,17 @@ class Player:
         self.xVelocity = max(self.xVelocity, self.x_min)
         self.xVelocity = min(self.xVelocity, self.x_max)
         self.X_POS += self.xVelocity
-        self.Y_POS += self.yVelocity - speed
+        self.Y_POS += self.yVelocity
+        self.Y_POS -= speed
+        if self.Y_POS < self.y_limit:
+            offset = self.Y_POS - self.y_limit
+            # self.Y_POS = self.y_limit
+            # sys.exit()
         self.rect.x = self.X_POS
         self.rect.y = self.Y_POS
-        self.draw()
+        # self.draw()
         return offset
-    
+        
     def jump(self):
         if self.yVelocity > 0:
             self.yVelocity = -self.yStrength
@@ -70,7 +74,9 @@ class Player:
         self.xVelocity = max(0, self.xVelocity)
         self.xVelocity += self.xStrength
 
-    def draw(self):
+    def draw(self, offset):
+        self.Y_POS -= offset
+        self.rect.y = self.Y_POS
         SCREEN.blit(self.img, (self.rect.x, self.rect.y))
 
 class Obstacle:
@@ -83,22 +89,46 @@ class Obstacle:
         SCREEN.blit(self.img, (self.rect.x, self.rect.y))
         return self.rect.y > 1200
 
+# obstacles = []
+# obstacles.append(Obstacle(GREEN_OBSTACLE, 500, 1100))
+# obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(200, 800), 900))
+# obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(200, 800), 700))
+# obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(200, 800), 500))
+# obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(200, 800), 300))
+# obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(200, 800), 100))
+# player = Player(CHARECTER)
+# while(True):
+#     CLOCK.tick(60)
+#     userInput = pygame.key.get_pressed()
+#     if userInput[pygame.K_a]:
+#         player.left()
+#     if userInput[pygame.K_d]:
+#         player.right()
+#     SCREEN.fill((255, 255, 255))
+#     offset = player.update(0)
+#     for obstacle in obstacles:
+#         if player.rect.colliderect(obstacle.rect):
+#             player.jump()
+#         done = obstacle.draw(offset)
+#         if (done):
+#             obstacles.remove(obstacle)
+#             obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(0, 1000), 0))
+#     pygame.display.update()
+
 def eval_genomes(genomes, config):
-    global game_speed, x_pos_bg, y_pos_bg, obstacles, players, ge, nets, points, generation, max_score
+    global game_speed, obstacles, players, ge, nets, points, generation, max_score
     obstacles = []
     players = []
     ge = []
     nets = []
     score = 0
-    offset = 0
-    game_speed = -1
 
     obstacles.append(Obstacle(GREEN_OBSTACLE, 500, 1100))
-    obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(0, 1000), 900))
-    obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(0, 1000), 700))
-    obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(0, 1000), 500))
-    obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(0, 1000), 300))
-    obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(0, 1000), 100))
+    obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(200, 800), 900))
+    obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(200, 800), 700))
+    obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(200, 800), 500))
+    obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(200, 800), 300))
+    obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(200, 800), 100))
     for genome_id, genome in genomes:
         players.append(Player(CHARECTER))
         ge.append(genome)
@@ -108,38 +138,53 @@ def eval_genomes(genomes, config):
 
     run = True
     while run:
-        offset += game_speed
+        CLOCK.tick(60)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
 
         SCREEN.fill((255,255,255))
+        offset = 0
         for player in players:
-            player.update(game_speed)
-        
+            offset = max(offset, player.update(-1))
+            if offset != 0:
+                print(offset)
+                print('asdfasdfadgsdsf')
+                sys.exit()
+        for player in players:
+            player.draw(offset)
+        score += offset
+        if offset != 0:
+            print(offset)
         if (len(players) == 0):
             break
 
         for obstacle in obstacles:
-            done = obstacle.draw(game_speed)
+            done = obstacle.draw(offset - 1)
             for player in players:
                 if player.rect.colliderect(obstacle.rect):
                     player.jump()
             if (done):
                 obstacles.remove(obstacle)
                 obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(0, 1000), 0))
-                score += 1
 
         for i, player in enumerate(players):
-            if player.Y_POS > 12000:
-                ge[players.index(player)].fitness -= 1
-                ge.pop(players.index(player))
-                max_score = max(max_score, player.reward)
-                players.pop(players.index(player))
+            if player.Y_POS > 1200:
+                ge[i].fitness = player.reward
+                print(ge[i].fitness)
+                max_score = max(max_score, ge[i].fitness)
+                ge.pop(i)
+                players.pop(i)
                 continue
-            player.reward = max(player.reward, player.Y_POS - offset)
-            output = nets[i].activate((((obstacles[0].rect.x - player.rect.x) / 100, (obstacles[1].rect.x - player.rect.x) / 100, (obstacles[2].rect.x - player.rect.x) / 100, (obstacles[3].rect.x - player.rect.x) / 100, (obstacles[4].rect.x - player.rect.x) / 100, (obstacles[5].rect.x - player.rect.x) / 100, (obstacles[0].rect.y - player.rect.y) / 100, (obstacles[1].rect.y - player.rect.y) / 100, (obstacles[2].rect.y - player.rect.y) / 100, (obstacles[3].rect.y - player.rect.y) / 100, (obstacles[4].rect.y - player.rect.y) / 100, (obstacles[5].rect.y - player.rect.y) / 100, player.rect.x / 100, player.rect.y / 100)))
+            player.reward = max(player.reward, score + player.Y_POS)
+            idx = 0
+            for j, obstacle in enumerate(obstacles):
+                if obstacle.rect.y > player.Y_POS:
+                    idx = j
+                    break
+            output = nets[i].activate(((obstacles[idx].rect.x - player.X_POS) / 100, (obstacles[idx].rect.y - player.Y_POS) / 100, (obstacles[idx + 1].rect.x - player.X_POS) / 100, (obstacles[idx + 1].rect.y - player.Y_POS) / 100, player.Y_POS, player.X_POS))
+        
             move = output.index(max(output))
             if move == 0:
                 player.left()
@@ -147,10 +192,13 @@ def eval_genomes(genomes, config):
                 player.right()
                 
         pygame.display.update()
+        score += 1
+
     generation += 1
-    print(f"generation: {generation} score: {max_score}")
+    print(f"generation: {generation} score: {max_score} population size: {len(genomes)}")
     max_score = 0
-        
+
+
 
 global pop
 config = neat.config.Config(
