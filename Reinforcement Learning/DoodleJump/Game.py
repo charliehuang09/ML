@@ -4,6 +4,7 @@ import sys
 import random
 import neat
 from scipy.special import softmax
+generation = 0
 pygame.init()
 CLOCK = pygame.time.Clock()
 
@@ -17,13 +18,14 @@ config_path = '/Users/charlie/ML/Reinforcement Learning/DoodleJump/config.txt'
 CHARECTER = pygame.image.load('/Users/charlie/ML/Reinforcement Learning/DoodleJump/Assets/Charecter.jpeg')
 CHARECTER = pygame.transform.scale(CHARECTER, (64, 64))
 GREEN_OBSTACLE = pygame.image.load('/Users/charlie/ML/Reinforcement Learning/DoodleJump/Assets/Green_Obstacle.png')
-GREEN_OBSTACLE = pygame.transform.scale(GREEN_OBSTACLE, (128, 32))
+GREEN_OBSTACLE = pygame.transform.scale(GREEN_OBSTACLE, (128 * 2, 32))
 class Player:
     X_POS = 500
     Y_POS = 1000
     JUMP_VEL = 8.5
 
     def __init__(self, img):
+        self.reward = self.Y_POS
         self.img = img
         self.xStrength = 1.5
         self.yStrength = 30
@@ -58,6 +60,7 @@ class Player:
         self.Y_POS += self.yVelocity - speed
         self.rect.x = self.X_POS
         self.rect.y = self.Y_POS
+        self.reward = max(self.reward, self.Y_POS)
         self.draw()
         return offset
     
@@ -117,13 +120,13 @@ class Obstacle:
 
 def eval_genomes(genomes, config):
     clock = pygame.time.Clock()
-    global game_speed, x_pos_bg, y_pos_bg, obstacles, players, ge, nets, points
+    global game_speed, x_pos_bg, y_pos_bg, obstacles, players, ge, nets, points, generation
     obstacles = []
     players = []
     ge = []
     nets = []
     score = 0
-    game_speed = -0.1
+    game_speed = -1
 
     obstacles.append(Obstacle(GREEN_OBSTACLE, 500, 1100))
     obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(0, 1000), 900))
@@ -154,8 +157,9 @@ def eval_genomes(genomes, config):
 
         for obstacle in obstacles:
             done = obstacle.draw(game_speed)
-            if player.rect.colliderect(obstacle.rect):
-                player.jump()
+            for player in players:
+                if player.rect.colliderect(obstacle.rect):
+                    player.jump()
             if (done):
                 obstacles.remove(obstacle)
                 obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(0, 1000), 0))
@@ -163,21 +167,21 @@ def eval_genomes(genomes, config):
 
         for i, player in enumerate(players):
             if player.Y_POS > 12000:
-                ge[i].fitness = (-game_speed) * 10
-                print(ge[i].fitness)
+                ge[i].fitness = player.reward
                 players.remove(player)
                 continue
-            output = nets[i].activate((((obstacles[0].rect.x - player.rect.x) / 100, (obstacles[1].rect.x - player.rect.x) / 100, (obstacles[2].rect.x - player.rect.x) / 100, (obstacles[3].rect.x - player.rect.x) / 100, (obstacles[4].rect.x - player.rect.x) / 100, (obstacles[5].rect.x - player.rect.x) / 100, (obstacles[0].rect.y - player.rect.y) / 100, (obstacles[1].rect.y - player.rect.y) / 100, (obstacles[2].rect.y - player.rect.y) / 100, (obstacles[3].rect.y - player.rect.y) / 100, (obstacles[4].rect.y - player.rect.y) / 100, (obstacles[5].rect.y - player.rect.y) / 100, player.rect.x / 100, player.rect.y / 100)))
+            output = nets[i].activate(((obstacles[0].rect.x - player.rect.x) / 100, (obstacles[1].rect.x - player.rect.x) / 100, (obstacles[0].rect.y - player.rect.y) / 100, (obstacles[1].rect.y - player.rect.y) / 100, player.rect.x / 100, player.rect.y / 100, player.xVelocity, player.yVelocity))
+            # output = nets[i].activate((((obstacles[0].rect.x - player.rect.x) / 100, (obstacles[1].rect.x - player.rect.x) / 100, (obstacles[2].rect.x - player.rect.x) / 100, (obstacles[3].rect.x - player.rect.x) / 100, (obstacles[4].rect.x - player.rect.x) / 100, (obstacles[5].rect.x - player.rect.x) / 100, (obstacles[0].rect.y - player.rect.y) / 100, (obstacles[1].rect.y - player.rect.y) / 100, (obstacles[2].rect.y - player.rect.y) / 100, (obstacles[3].rect.y - player.rect.y) / 100, (obstacles[4].rect.y - player.rect.y) / 100, (obstacles[5].rect.y - player.rect.y) / 100, player.rect.x / 100, player.rect.y / 100)))
             move = output.index(max(output))
             if move == 0:
                 player.left()
             if move == 1:
                 player.right()
-
-        pygame.display.update()
+                
         game_speed -= 0.001
-        print(len(players))
-        # clock.tick(0)
+        pygame.display.update()
+    generation += 1
+    print(generation)
         
 
 global pop
