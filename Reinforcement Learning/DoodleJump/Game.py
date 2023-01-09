@@ -46,7 +46,7 @@ class Player:
             if event.type == pygame.QUIT:
                 sys.exit()
         keys = pygame.key.get_pressed()
-        self.xVelocity *= 0.95
+        self.xVelocity *= 0.9
         self.yVelocity *= 0.99
         self.yVelocity += self.gravity
         self.xVelocity = max(self.xVelocity, self.x_min)
@@ -84,7 +84,6 @@ class Obstacle:
         return self.rect.y > 1200
 
 def eval_genomes(genomes, config):
-    clock = pygame.time.Clock()
     global game_speed, x_pos_bg, y_pos_bg, obstacles, players, ge, nets, points, generation, max_score
     obstacles = []
     players = []
@@ -134,9 +133,10 @@ def eval_genomes(genomes, config):
 
         for i, player in enumerate(players):
             if player.Y_POS > 12000:
-                ge[i].fitness = player.reward
+                ge[players.index(player)].fitness -= 1
+                ge.pop(players.index(player))
                 max_score = max(max_score, player.reward)
-                players.remove(player)
+                players.pop(players.index(player))
                 continue
             player.reward = max(player.reward, player.Y_POS - offset)
             output = nets[i].activate((((obstacles[0].rect.x - player.rect.x) / 100, (obstacles[1].rect.x - player.rect.x) / 100, (obstacles[2].rect.x - player.rect.x) / 100, (obstacles[3].rect.x - player.rect.x) / 100, (obstacles[4].rect.x - player.rect.x) / 100, (obstacles[5].rect.x - player.rect.x) / 100, (obstacles[0].rect.y - player.rect.y) / 100, (obstacles[1].rect.y - player.rect.y) / 100, (obstacles[2].rect.y - player.rect.y) / 100, (obstacles[3].rect.y - player.rect.y) / 100, (obstacles[4].rect.y - player.rect.y) / 100, (obstacles[5].rect.y - player.rect.y) / 100, player.rect.x / 100, player.rect.y / 100)))
@@ -145,7 +145,6 @@ def eval_genomes(genomes, config):
                 player.left()
             if move == 1:
                 player.right()
-        # print(offset)
                 
         pygame.display.update()
     generation += 1
