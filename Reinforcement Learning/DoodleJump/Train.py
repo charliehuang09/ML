@@ -4,7 +4,7 @@ import sys
 import random
 import neat
 import numpy as np
-DISPLAY = True
+DISPLAY = False
 generation = 0
 max_score = 0
 max_plot = np.array([])
