@@ -4,6 +4,7 @@ import sys
 import random
 import neat
 import numpy as np
+DISPLAY = True
 generation = 0
 max_score = 0
 max_plot = np.array([])
@@ -13,9 +14,10 @@ CLOCK = pygame.time.Clock()
 
 SCREEN_HEIGHT = 1200
 SCREEN_WIDTH = 1000
-SCREEN = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-SCREEN.fill((255,255,255))
-pygame.display.update()
+if DISPLAY:
+    SCREEN = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    SCREEN.fill((255,255,255))
+    pygame.display.update()
 config_path = '/Users/charlie/ML/Reinforcement Learning/DoodleJump/config.txt'
 
 CHARECTER = pygame.image.load('/Users/charlie/ML/Reinforcement Learning/DoodleJump/Assets/Charecter.jpeg')
@@ -32,8 +34,10 @@ class Obstacle:
         self.rect = pygame.Rect(x, y, img.get_width(), img.get_height())
 
     def draw(self, offset):
+        global DISPLAY
         self.rect.y -= offset
-        SCREEN.blit(self.img, (self.rect.x, self.rect.y))
+        if DISPLAY:
+            SCREEN.blit(self.img, (self.rect.x, self.rect.y))
         return self.rect.y > 1200
 
 class Player:
@@ -92,9 +96,11 @@ class Player:
         self.xVelocity += self.xStrength
 
     def draw(self, offset):
+        global DISPLAY
         self.Y_POS -= offset
         self.rect.y = self.Y_POS
-        SCREEN.blit(self.img, (self.rect.x, self.rect.y))
+        if DISPLAY:
+            SCREEN.blit(self.img, (self.rect.x, self.rect.y))
 
 # obstacles = []
 # obstacles.append(Obstacle(GREEN_OBSTACLE, 500, 1100, 0))
@@ -128,12 +134,11 @@ class Player:
 #     pygame.display.update()
 
 def eval_genomes(genomes, config):
-    global game_speed, obstacles, players, ge, nets, points, generation, max_score, max_plot, mean_plot
+    global obstacles, players, ge, nets, generation, max_score, max_plot, mean_plot, DISPLAY
     obstacles = []
     players = []
     ge = []
     nets = []
-    score = 0
     tot_score = 0
 
     obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(100, 900), 1100, 0))
@@ -156,14 +161,14 @@ def eval_genomes(genomes, config):
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-
-        SCREEN.fill((255,255,255))
+        if DISPLAY:
+            SCREEN.fill((255,255,255))
         offset = 0
         for player in players:
             offset = min(offset, player.update(-1))
         for player in players:
             player.draw(offset)
-        score -= offset
+
         if (len(players) == 0):
             break
 
@@ -187,19 +192,18 @@ def eval_genomes(genomes, config):
                 continue
             idx = -1
             for j, obstacle in enumerate(obstacles):
-                if obstacle.id < player.obstacle_id:
+                if obstacle.id == player.obstacle_id:
                     idx = j
                     break
-            idx = 0
-            output = nets[i].activate(((obstacles[idx].rect.x - player.X_POS) / 100, (obstacles[idx].rect.y - player.Y_POS) / 100, (obstacles[idx + 1].rect.x - player.X_POS) / 100, (obstacles[idx + 1].rect.y - player.Y_POS) / 100, player.yVelocity, player.yVelocity > 0))
+            output = nets[i].activate(((obstacles[idx].rect.x - player.X_POS) / 10, (obstacles[idx].rect.y - player.Y_POS) / 10, (obstacles[idx + 1].rect.x - player.X_POS) / 10, (obstacles[idx + 1].rect.y - player.Y_POS) / 10, player.yVelocity))
             move = output.index(max(output))
             if move == 0:
                 player.left()
             if move == 1:
                 player.right()
-                
-        pygame.display.update()
-        score += 1
+        
+        if DISPLAY:
+            pygame.display.update()
 
     generation += 1
     print(f"generation: {generation} max score: {max_score} mean score: {tot_score / len(genomes)} population size: {len(genomes)}")
