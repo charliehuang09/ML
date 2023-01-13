@@ -4,7 +4,11 @@ import sys
 import random
 import neat
 import numpy as np
-DISPLAY = False
+DISPLAY = True
+FPS = 60
+GOAL = 1000
+if DISPLAY == False:
+    FPS = 0
 generation = 0
 max_score = 0
 max_plot = np.array([])
@@ -21,7 +25,7 @@ if DISPLAY:
 config_path = '/Users/charlie/ML/Reinforcement Learning/DoodleJump/config.txt'
 
 CHARECTER = pygame.image.load('/Users/charlie/ML/Reinforcement Learning/DoodleJump/Assets/Charecter.jpeg')
-CHARECTER = pygame.transform.scale(CHARECTER, (64, 64))
+CHARECTER = pygame.transform.scale(CHARECTER, (90, 90))
 GREEN_OBSTACLE = pygame.image.load('/Users/charlie/ML/Reinforcement Learning/DoodleJump/Assets/Green_Obstacle.png')
 GREEN_OBSTACLE = pygame.transform.scale(GREEN_OBSTACLE, (128, 32))
 def linear(x):
@@ -31,14 +35,19 @@ class Obstacle:
     def __init__(self, img, x, y, id_):
         self.img = img
         self.id = id_
+        self.dir = random.randint(-1, 1)
+        self.xVelocity = 2
         self.rect = pygame.Rect(x, y, img.get_width(), img.get_height())
 
     def draw(self, offset):
         global DISPLAY
         self.rect.y -= offset
+        self.rect.x += self.xVelocity * self.dir
+        if self.rect.x > 1000 or self.rect.x < 0:
+            self.dir *= -1
         if DISPLAY:
             SCREEN.blit(self.img, (self.rect.x, self.rect.y))
-        return self.rect.y > 1200
+        return self.rect.y >= 1200
 
 class Player:
     X_POS = 500
@@ -48,8 +57,8 @@ class Player:
     def __init__(self, img, obstacle):
         self.reward = self.Y_POS
         self.img = img
-        self.xStrength = 4
-        self.yStrength = 25
+        self.xStrength = 2
+        self.yStrength = 35
         self.xVelocity = 0
         self.yVelocity = -20
         self.gravity = 1
@@ -103,15 +112,15 @@ class Player:
             SCREEN.blit(self.img, (self.rect.x, self.rect.y))
 
 # obstacles = []
-# obstacles.append(Obstacle(GREEN_OBSTACLE, 500, 1100, 0))
-# obstacles.append(Obstacle(GREEN_OBSTACLE, 500, 900, 1))
-# obstacles.append(Obstacle(GREEN_OBSTACLE, 500, 700, 2))
-# obstacles.append(Obstacle(GREEN_OBSTACLE, 500, 500, 3))
-# obstacles.append(Obstacle(GREEN_OBSTACLE, 500, 300, 4))
-# obstacles.append(Obstacle(GREEN_OBSTACLE, 500, 100, 5))
+# obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(100, 900), 1100, 0))
+# obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(100, 900), 900, 1))
+# obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(100, 900), 700, 2))
+# obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(100, 900), 500, 3))
+# obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(100, 900), 300, 4))
+# obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(100, 900), 100, 5))
 # player = Player(CHARECTER, 0)
 # while(True):
-#     CLOCK.tick(5)
+#     CLOCK.tick(FPS)
 #     userInput = pygame.key.get_pressed()
 #     if userInput[pygame.K_a]:
 #         player.left()
@@ -123,18 +132,18 @@ class Player:
 #     offset = player.update(0)
 #     player.draw(offset)
 #     for obstacle in obstacles:
-#         print(player.obstacle_id)
 #         if player.rect.colliderect(obstacle.rect) and player.yVelocity > 0:
 #             player.jump()
 #             player.update_obstacle(obstacle.id)
 #         done = obstacle.draw(offset)
 #         if (done):
-#             obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(200, 800), 0, obstacle.id + 6))
+#             print(obstacles[len(obstacles) - 1].rect.y - 200)
+#             obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(100, 900), obstacles[len(obstacles) - 1].rect.y - 200, obstacle.id + 6))
 #             obstacles.remove(obstacle)
 #     pygame.display.update()
 
 def eval_genomes(genomes, config):
-    global obstacles, players, ge, nets, generation, max_score, max_plot, mean_plot, DISPLAY
+    global obstacles, players, ge, nets, generation, max_score, max_plot, mean_plot
     obstacles = []
     players = []
     ge = []
@@ -156,7 +165,7 @@ def eval_genomes(genomes, config):
 
     run = True
     while run:
-        # CLOCK.tick(10)
+        CLOCK.tick(FPS)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -177,9 +186,10 @@ def eval_genomes(genomes, config):
             for player in players:
                 if player.rect.colliderect(obstacle.rect) and player.yVelocity > 0:
                     player.jump()
+                    max_score = max(max_score, obstacle.id)
                     player.update_obstacle(obstacle.id)
             if (done):
-                obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(200, 800), 0, obstacle.id + 6))
+                obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(100, 900), obstacles[len(obstacles) - 1].rect.y - 200, obstacle.id + 6))
                 obstacles.remove(obstacle)
 
         for i, player in enumerate(players):
@@ -201,8 +211,20 @@ def eval_genomes(genomes, config):
                 player.left()
             if move == 1:
                 player.right()
-        
+        if max_score == GOAL:
+            # time.sleep(5)
+            max_plot = np.append(max_plot, GOAL)
+            for player in players:
+                tot_score += player.obstacle_id
+            mean_plot = np.append(mean_plot, mean_plot[len(mean_plot) - 1])
+            np.save("max.npy", max_plot)
+            np.save("mean.npy", mean_plot)
+            sys.exit()
         if DISPLAY:
+            font = pygame.font.Font('freesansbold.ttf', 30)
+            score = font.render(f"Score: {max_score} Generation: {generation} Goal {GOAL}", True, (0, 0, 0))
+            scoreRect = score.get_rect()
+            SCREEN.blit(score, scoreRect)
             pygame.display.update()
 
     generation += 1
