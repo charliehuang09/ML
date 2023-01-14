@@ -217,8 +217,8 @@ def eval_genomes(genomes, config):
             for player in players:
                 tot_score += player.obstacle_id
             mean_plot = np.append(mean_plot, mean_plot[len(mean_plot) - 1])
-            np.save("max.npy", max_plot)
-            np.save("mean.npy", mean_plot)
+            np.save("/Users/charlie/ML/Reinforcement Learning/DoodleJump/max.npy", max_plot)
+            np.save("/Users/charlie/ML/Reinforcement Learning/DoodleJump/mean.npy", mean_plot)
             sys.exit()
         if DISPLAY:
             font = pygame.font.Font('freesansbold.ttf', 30)
@@ -232,8 +232,8 @@ def eval_genomes(genomes, config):
     mean_plot = np.append(mean_plot, tot_score / len(genomes))
     max_plot = np.append(max_plot, max_score)
     max_score = 0
-    np.save("max.npy", max_plot)
-    np.save("mean.npy", mean_plot)
+    np.save("/Users/charlie/ML/Reinforcement Learning/DoodleJump/max.npy", max_plot)
+    np.save("/Users/charlie/ML/Reinforcement Learning/DoodleJump/mean.npy", mean_plot)
 
 
 
@@ -248,8 +248,8 @@ config = neat.config.Config(
 config.genome_config.add_activation('linear', linear)
 pop = neat.Population(config)
 pop.run(eval_genomes, 100000)
-np.save("max.npy", max_plot)
-np.save("mean.npy", mean_plot)
+np.save("/Users/charlie/ML/Reinforcement Learning/DoodleJump/max.npy", max_plot)
+np.save("/Users/charlie/ML/Reinforcement Learning/DoodleJump/mean.npy", mean_plot)
 
 #random score: 1200
 #after 50 gen max: 2000
