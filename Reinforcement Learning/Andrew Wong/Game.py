@@ -18,6 +18,18 @@ SCREEN = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 SCREEN.fill((255,255,255))
 CLOCK = pygame.time.Clock()
 pygame.display.update()
+class Obstacle:
+    def  __init__(self, x, y, x_size, y_size, R = 100, G = 100, B = 100):
+        self.rect = pygame.Rect(x, y, x_size, y_size)
+        self.x = x
+        self.y = y
+        self.x_size = x_size
+        self.y_size = y_size
+        self.R = R
+        self.G = G
+        self.B = B
+    def draw(self):
+        pygame.draw.rect(SCREEN, (self.R, self.G, self.B), (self.x, self.y, self.x_size, self.y_size))
 class Bullet:
     def __init__(self, x, y, direction, R = 255, G = 0, B = 0):
         self.rect = pygame.Rect(x, y, 25, 10)
@@ -25,8 +37,6 @@ class Bullet:
         self.R = R
         self.G = G
         self.B = B
-        self.x = x
-        self.y = y
         self.direction = direction
         self.speed = 25
     def draw(self):
@@ -39,7 +49,7 @@ class Bullet:
         pygame.draw.rect(SCREEN, (self.R, self.G, self.B), (self.rect.x, self.rect.y, 25, 10))
 
 class Player:
-    def __init__(self, right_img, left_img, x, y, gravity, direction):
+    def __init__(self, right_img, left_img, x, y, gravity, direction, startImg):
         self.right_img = right_img
         self.left_img = left_img
         self.rect = pygame.Rect(x, y, right_img.get_width(), right_img.get_height())
@@ -49,10 +59,11 @@ class Player:
         self.yvelocity = 0
         self.gravity = gravity
         self.canJump = False
-        self.currimg = self.left_img
+        self.currimg = startImg
         self.direction = direction
         self.gunCooldown = 10
         self.cooldown = 0
+        self.health = 100
     def jump(self):
         self.yvelocity += self.ystrength
     def right(self):
@@ -72,7 +83,8 @@ class Player:
         self.yvelocity *= 0.99
         self.yvelocity += self.gravity
         self.xvelocity *= 0.9
-        self.rect.x += self.xvelocity
+        if abs(self.xvelocity) > 1:
+            self.rect.x += self.xvelocity
         self.rect.y += self.yvelocity
         if self.rect.y > 630:
             self.rect.y = 630
@@ -84,6 +96,7 @@ class Player:
     def draw(self):
         # pygame.draw.rect(SCREEN, (0, 0, 0), (self.rect.x, self.rect.y, 100, 100))
         SCREEN.blit(self.currimg, (self.rect.x, self.rect.y))
+        pygame.draw.rect(SCREEN, (0, 255, 0), (self.rect.x, self.rect.y - 20, self.health, 10))
     def collide(self, obstacle):
         if self.rect.colliderect(obstacle.rect):
             if abs(self.rect.top - obstacle.rect.bottom) < COLLISION_TOLERANCE and self.yvelocity < 0:
@@ -103,19 +116,7 @@ class Player:
                 # self.rect.right = obdstacle.rect.left
                 self.xvelocity = 1
                 # self.xvelocity *= -1
-
-class Obstacle:
-    def  __init__(self, x, y, x_size, y_size, R = 100, G = 100, B = 100):
-        self.rect = pygame.Rect(x, y, x_size, y_size)
-        self.x = x
-        self.y = y
-        self.x_size = x_size
-        self.y_size = y_size
-        self.R = R
-        self.G = G
-        self.B = B
-    def draw(self):
-        pygame.draw.rect(SCREEN, (self.R, self.G, self.B), (self.x, self.y, self.x_size, self.y_size))
+                
 def empty():
     return []
 def threeBlocks():#800, 1400, x, y
@@ -128,8 +129,8 @@ def threeBlocks():#800, 1400, x, y
     return obstacles
 def run():
     run = True
-    redPlayer = Player(RED_LEFT, RED_RIGHT, 90, 70, 1, 1)
-    bluePlayer = Player(BLUE_LEFT, BLUE_RIGHT, 1310, 70, 1, -1)
+    redPlayer = Player(RED_LEFT, RED_RIGHT, 90, 70, 1, 1, RED_RIGHT)
+    bluePlayer = Player(BLUE_LEFT, BLUE_RIGHT, 1310, 70, 1, -1, BLUE_LEFT)
     obstacles = threeBlocks()
     bullets = []
     while run:
@@ -161,9 +162,8 @@ def run():
             redPlayer.jump()
             redPlayer.canJump = False
         if userInput[pygame.K_s] and redPlayer.cooldown <= 0:
-            bullets.append(Bullet(redPlayer.rect.x + 50, redPlayer.rect.y + 30, redPlayer.direction))
+            bullets.append(Bullet(redPlayer.rect.x + 50, redPlayer.rect.y + 30, redPlayer.direction, 255, 0, 0))
             redPlayer.cooldown = redPlayer.gunCooldown
-        print(redPlayer.xvelocity)
             
         if userInput[pygame.K_LEFT]:
             bluePlayer.left()
@@ -176,7 +176,7 @@ def run():
             bluePlayer.jump()
             bluePlayer.canJump = False
         if userInput[pygame.K_DOWN] and bluePlayer.cooldown <= 0:
-            bullets.append(Bullet(bluePlayer.rect.x + 50, bluePlayer.rect.y + 30, bluePlayer.direction))
+            bullets.append(Bullet(bluePlayer.rect.x + 50, bluePlayer.rect.y + 30, bluePlayer.direction, 0, 0, 255))
             bluePlayer.cooldown = bluePlayer.gunCooldown
         redPlayer.update()
         redPlayer.draw()
@@ -186,5 +186,27 @@ def run():
             bullet.draw()
             if bullet.timer <= 0:
                 bullets.remove(bullet)
+                continue
+            if bullet.R == 255 and bullet.rect.colliderect(bluePlayer):
+                bluePlayer.health -= 10
+                bullets.remove(bullet)
+                continue
+            if bullet.R == 0 and bullet.rect.colliderect(redPlayer):
+                redPlayer.health -= 10
+                bullets.remove(bullet)
+                continue
+        if redPlayer.health <= 0:
+            SCREEN.fill((255, 255, 255))
+            bluePlayer.draw()
+            pygame.display.update()
+            time.sleep(2)
+            return
+        if bluePlayer.health <= 0:
+            SCREEN.fill((255, 255, 255))
+            redPlayer.draw()
+            pygame.display.update()
+            time.sleep(2)
+            return
         pygame.display.update()
+        print(redPlayer.health, bluePlayer.health)
 run()
