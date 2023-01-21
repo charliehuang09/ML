@@ -30,7 +30,6 @@ GREEN_OBSTACLE = pygame.image.load('/Users/charlie/ML/Reinforcement Learning/Doo
 GREEN_OBSTACLE = pygame.transform.scale(GREEN_OBSTACLE, (128, 32))
 def linear(x):
     return x
-
 class Obstacle:
     def __init__(self, img, x, y, id_):
         self.img = img

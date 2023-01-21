@@ -61,7 +61,7 @@ class Dinosaur:
 
         if self.step_index >= 10:
             self.step_index = 0
-
+        userInput = pygame.key.get_pressed()
         if userInput[pygame.K_UP] and not self.dino_jump:
             self.dino_duck = False
             self.dino_run = False
