@@ -5,7 +5,7 @@ import random
 import neat
 import numpy as np
 DISPLAY = True
-FPS = 60
+FPS = 120
 GOAL = 1000
 if DISPLAY == False:
     FPS = 0
