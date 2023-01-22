@@ -65,7 +65,6 @@ class ak47:
         self.ammo -= 1
         bullets.append(Bullet(x + 50, y + 30, direction, self.damage, self.speed, R, G, B))
         self.currCooldown = self.cooldown
-        print(self.ammo)
 class smg:
     def __init__(self):
         self.ammo = 50
