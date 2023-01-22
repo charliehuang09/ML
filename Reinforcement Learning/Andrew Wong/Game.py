@@ -55,28 +55,66 @@ class ak47:
         self.maxAmmo = 15
         self.currCooldown = 0
         self.cooldown = 30
-        self.damage = 20
+        self.damage = 15
+        self.name = "AK-47"
+        self.speed = 30
     def shoot(self, x, y, direction, R, G, B):
         if self.currCooldown > 0:
             return
         global bullets
         self.ammo -= 1
-        bullets.append(Bullet(x + 50, y + 30, direction, 10, 25, R, G, B))
+        bullets.append(Bullet(x + 50, y + 30, direction, self.damage, self.speed, R, G, B))
         self.currCooldown = self.cooldown
         print(self.ammo)
 class smg:
     def __init__(self):
-        self.ammo = 30
-        self.maxAmmo = 30
+        self.ammo = 50
+        self.maxAmmo = 50
         self.currCooldown = 0
         self.cooldown = 5
-        self.damage = 0.1
+        self.damage = 2
+        self.name = "SMG"
+        self.speed = 25
     def shoot(self, x, y, direction, R, G, B):
         if self.currCooldown > 0:
             return
         global bullets
         self.ammo -= 1
-        bullets.append(Bullet(x + 50, y + 30, direction, 10, 25, R, G, B))
+        bullets.append(Bullet(x + 50, y + 30, direction, self.damage, self.speed, R, G, B))
+        self.currCooldown = self.cooldown
+class sniper:
+    def __init__(self):
+        self.ammo = 3
+        self.maxAmmo = 3
+        self.currCooldown = 0
+        self.cooldown = 50
+        self.damage = 50
+        self.name = "Sniper"
+        self.speed = 50
+    def shoot(self, x, y, direction, R, G, B):
+        if self.currCooldown > 0:
+            return
+        global bullets
+        self.ammo -= 1
+        bullets.append(Bullet(x + 50, y + 30, direction, self.damage, self.speed, R, G, B))
+        self.currCooldown = self.cooldown
+class shotgun:
+    def __init__(self):
+        self.ammo = 1
+        self.maxAmmo = 1
+        self.currCooldown = 0
+        self.cooldown = 50
+        self.damage = 25
+        self.name = "Shotgun"
+        self.speed = 50
+    def shoot(self, x, y, direction, R, G, B):
+        if self.currCooldown > 0:
+            return
+        global bullets
+        self.ammo -= 1
+        bullets.append(Bullet(x + 50, y + 30, direction, self.damage, self.speed, R, G, B))
+        bullets.append(Bullet(x + 50, y + -15, direction, self.damage, self.speed, R, G, B))
+        bullets.append(Bullet(x + 50, y + 75, direction, self.damage, self.speed, R, G, B))
         self.currCooldown = self.cooldown
     
 
@@ -90,7 +128,7 @@ class Player:
         self.xvelocity = 0
         self.yvelocity = 0
         self.gravity = gravity
-        self.canJump = False
+        self.canJumqp = False
         self.currimg = startImg
         self.direction = direction
         self.health = 100
@@ -100,6 +138,7 @@ class Player:
         self.G = G
         self.B = B
         self.timer = 0
+        self.font = pygame.font.Font('freesansbold.ttf', 32)
     def jump(self):
         self.yvelocity += self.ystrength
         self.canJump = False
@@ -114,7 +153,6 @@ class Player:
     def changeGun(self):
         self.gun_id += 1
         self.gun_id %= len(self.guns)
-        print(self.gun_id)
     def reload(self):
         if self.timer > 0:
             return
@@ -192,8 +230,12 @@ def run():
     blueGuns = []
     redGuns.append(ak47())
     redGuns.append(smg())
+    redGuns.append(sniper())
+    redGuns.append(shotgun())
     blueGuns.append(ak47())
     blueGuns.append(smg())
+    blueGuns.append(sniper())
+    blueGuns.append(shotgun())
     redPlayer = Player(RED_LEFT, RED_RIGHT, 90, 70, 1, 1, RED_RIGHT, redGuns, 255, 0, 0)
     bluePlayer = Player(BLUE_LEFT, BLUE_RIGHT, 1310, 70, 1, -1, BLUE_LEFT, blueGuns, 0, 0, 255)
     obstacles = threeBlocks()
@@ -271,14 +313,23 @@ def run():
             SCREEN.fill((255, 255, 255))
             bluePlayer.draw()
             pygame.display.update()
-            time.sleep(2)
+            time.sleep(1)
             return
         if bluePlayer.health <= 0:
             SCREEN.fill((255, 255, 255))
             redPlayer.draw()
             pygame.display.update()
-            time.sleep(2)
+            time.sleep(1)
             return
+
+        text = redPlayer.font.render(redPlayer.guns[redPlayer.gun_id].name, (0, 0, 0), True)
+        textRect = text.get_rect()
+        textRect.center = (100, 750)
+        SCREEN.blit(text, textRect)
+        text = bluePlayer.font.render(bluePlayer.guns[bluePlayer.gun_id].name, (0, 0, 0), True)
+        textRect = text.get_rect()
+        textRect.center = (1300, 750)
+        SCREEN.blit(text, textRect)
+
         pygame.display.update()
-        # print(redPlayer.health, bluePlayer.health)
 run()
