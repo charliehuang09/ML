@@ -32,9 +32,9 @@ class Obstacle:
     def draw(self):
         pygame.draw.rect(SCREEN, (self.R, self.G, self.B), (self.x, self.y, self.x_size, self.y_size))
 class Bullet:
-    def __init__(self, x, y, direction, damage, speed, R, G, B):
+    def __init__(self, x, y, direction, damage, speed, timer, R, G, B):
         self.rect = pygame.Rect(x, y, 25, 10)
-        self.timer = 50
+        self.timer = timer
         self.R = R
         self.G = G
         self.B = B
@@ -58,12 +58,13 @@ class ak47:
         self.damage = 15
         self.name = "AK-47"
         self.speed = 30
+        self.timer = 50
     def shoot(self, x, y, direction, R, G, B):
         if self.currCooldown > 0:
             return
         global bullets
         self.ammo -= 1
-        bullets.append(Bullet(x + 50, y + 30, direction, self.damage, self.speed, R, G, B))
+        bullets.append(Bullet(x + 50, y + 30, direction, self.damage, self.speed, self.timer, R, G, B))
         self.currCooldown = self.cooldown
 class smg:
     def __init__(self):
@@ -74,12 +75,30 @@ class smg:
         self.damage = 2
         self.name = "SMG"
         self.speed = 25
+        self.timer = 50
     def shoot(self, x, y, direction, R, G, B):
         if self.currCooldown > 0:
             return
         global bullets
         self.ammo -= 1
-        bullets.append(Bullet(x + 50, y + 30, direction, self.damage, self.speed, R, G, B))
+        bullets.append(Bullet(x + 50, y + 30, direction, self.damage, self.speed, self.timer, R, G, B))
+        self.currCooldown = self.cooldown
+class yourmom:
+    def __init__(self):
+        self.ammo = 10000
+        self.maxAmmo = 10000
+        self.currCooldown = 0
+        self.cooldown = 1
+        self.damage = 100000000
+        self.name = "Fat"
+        self.speed = 50
+        self.timer = 50
+    def shoot(self, x, y, direction, R, G, B):
+        if self.currCooldown > 0:
+            return
+        global bullets
+        self.ammo -= 1
+        bullets.append(Bullet(x + 50, y + 30, direction, self.damage, self.speed, self.timer, R, G, B))
         self.currCooldown = self.cooldown
 class sniper:
     def __init__(self):
@@ -90,30 +109,30 @@ class sniper:
         self.damage = 50
         self.name = "Sniper"
         self.speed = 50
+        self.timer = 50
     def shoot(self, x, y, direction, R, G, B):
         if self.currCooldown > 0:
             return
         global bullets
         self.ammo -= 1
-        bullets.append(Bullet(x + 50, y + 30, direction, self.damage, self.speed, R, G, B))
+        bullets.append(Bullet(x + 50, y + 30, direction, self.damage, self.speed, self.timer, R, G, B))
         self.currCooldown = self.cooldown
-class shotgun:
+class mele:
     def __init__(self):
-        self.ammo = 1
-        self.maxAmmo = 1
+        self.ammo = 100000
+        self.maxAmmo = 100000
         self.currCooldown = 0
-        self.cooldown = 50
-        self.damage = 25
-        self.name = "Shotgun"
-        self.speed = 50
+        self.cooldown = 100
+        self.damage = 150
+        self.name = "Knife"
+        self.speed = 10
+        self.timer = 2
     def shoot(self, x, y, direction, R, G, B):
         if self.currCooldown > 0:
             return
         global bullets
         self.ammo -= 1
-        bullets.append(Bullet(x + 50, y + 30, direction, self.damage, self.speed, R, G, B))
-        bullets.append(Bullet(x + 50, y + -15, direction, self.damage, self.speed, R, G, B))
-        bullets.append(Bullet(x + 50, y + 75, direction, self.damage, self.speed, R, G, B))
+        bullets.append(Bullet(x + 50, y + 30, direction, self.damage, self.speed, self.timer, R, G, B))
         self.currCooldown = self.cooldown
     
 
@@ -130,7 +149,7 @@ class Player:
         self.canJumqp = False
         self.currimg = startImg
         self.direction = direction
-        self.health = 100
+        self.health = 500 
         self.guns = guns
         self.gun_id = 0
         self.R = R
@@ -184,7 +203,7 @@ class Player:
             self.rect.x = 1380
     def draw(self):
         SCREEN.blit(self.currimg, (self.rect.x, self.rect.y))
-        pygame.draw.rect(SCREEN, (0, 255, 0), (self.rect.x, self.rect.y - 20, self.health, 10))
+        pygame.draw.rect(SCREEN, (0, 255, 0), (self.rect.x, self.rect.y - 20, self.health / 5, 10))
         pygame.draw.rect(SCREEN, (0, 0, 255), (self.rect.x, self.rect.y - 40, (100 / self.guns[self.gun_id].maxAmmo) * self.guns[self.gun_id].ammo, 10))
         if self.timer > 0:
             if self.direction == 1:
@@ -220,6 +239,7 @@ def threeBlocks():#800, 1400, x, y
     obstacles.append(Obstacle(650, 500, 90, 70))
     obstacles.append(Obstacle(350, 300, 90, 70))
     obstacles.append(Obstacle(950, 300, 90, 70))
+    obstacles.append(Obstacle(650, 0, 100, 300))
     return obstacles
 def run():
     global bullets
@@ -230,11 +250,13 @@ def run():
     redGuns.append(ak47())
     redGuns.append(smg())
     redGuns.append(sniper())
-    redGuns.append(shotgun())
+    redGuns.append(mele())
+    # redGuns.append(yourmom()) 
     blueGuns.append(ak47())
     blueGuns.append(smg())
     blueGuns.append(sniper())
-    blueGuns.append(shotgun())
+    blueGuns.append(mele())
+    # blueGuns.append(yourmom())
     redPlayer = Player(RED_LEFT, RED_RIGHT, 90, 70, 1, 1, RED_RIGHT, redGuns, 255, 0, 0)
     bluePlayer = Player(BLUE_LEFT, BLUE_RIGHT, 1310, 70, 1, -1, BLUE_LEFT, blueGuns, 0, 0, 255)
     obstacles = threeBlocks()
@@ -245,7 +267,7 @@ def run():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
-                sys.exit()
+                return
         SCREEN.fill((255,255,255))
         pygame.draw.rect(SCREEN, (100, 100, 100), (0, 700, 1500, 20))
         redPlayer.canJump = False
@@ -253,6 +275,9 @@ def run():
             obstacle.draw()
             redPlayer.collide(obstacle)
             bluePlayer.collide(obstacle)
+            for bulllet in bullets:
+                if bulllet.rect.colliderect(obstacle.rect):
+                    bullets.remove(bulllet)
         userInput = pygame.key.get_pressed()
 
         if userInput[pygame.K_a]:
@@ -273,22 +298,22 @@ def run():
         elif not userInput[pygame.K_q]:
             redReload = False
             
-        if userInput[pygame.K_LEFT]:
+        if userInput[pygame.K_j]:
             bluePlayer.left()
-        if userInput[pygame.K_RIGHT]:
-            bluePlayer.right()
-        if userInput[pygame.K_UP] and bluePlayer.rect.y == 630:
-            bluePlayer.jump()
-        if userInput[pygame.K_UP] and bluePlayer.canJump:
-            bluePlayer.jump()
-        if userInput[pygame.K_DOWN]:
-            bluePlayer.shoot()
         if userInput[pygame.K_l]:
+            bluePlayer.right()
+        if userInput[pygame.K_i] and bluePlayer.rect.y == 630:
+            bluePlayer.jump()
+        if userInput[pygame.K_i] and bluePlayer.canJump:
+            bluePlayer.jump()
+        if userInput[pygame.K_k]:
+            bluePlayer.shoot()
+        if userInput[pygame.K_o]:
             bluePlayer.reload()
-        if userInput[pygame.K_m] and not blueReload:
+        if userInput[pygame.K_u] and not blueReload:
             blueReload = True
             bluePlayer.changeGun()
-        elif not userInput[pygame.K_m]:
+        elif not userInput[pygame.K_u]:
             blueReload = False
 
         redPlayer.update()
@@ -331,4 +356,5 @@ def run():
         SCREEN.blit(text, textRect)
 
         pygame.display.update()
-run()
+while(True):
+    run()

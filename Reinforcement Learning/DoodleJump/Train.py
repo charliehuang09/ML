@@ -5,7 +5,7 @@ import random
 import neat
 import numpy as np
 DISPLAY = True
-FPS = 120
+FPS = 60
 GOAL = 1000
 if DISPLAY == False:
     FPS = 0
@@ -109,37 +109,6 @@ class Player:
         self.rect.y = self.Y_POS
         if DISPLAY:
             SCREEN.blit(self.img, (self.rect.x, self.rect.y))
-
-# obstacles = []
-# obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(100, 900), 1100, 0))
-# obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(100, 900), 900, 1))
-# obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(100, 900), 700, 2))
-# obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(100, 900), 500, 3))
-# obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(100, 900), 300, 4))
-# obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(100, 900), 100, 5))
-# player = Player(CHARECTER, 0)
-# while(True):
-#     CLOCK.tick(FPS)
-#     userInput = pygame.key.get_pressed()
-#     if userInput[pygame.K_a]:
-#         player.left()
-#     if userInput[pygame.K_d]:
-#         player.right()
-#     if userInput[pygame.K_w]:
-#         player.jump()
-#     SCREEN.fill((255, 255, 255))
-#     offset = player.update(0)
-#     player.draw(offset)
-#     for obstacle in obstacles:
-#         if player.rect.colliderect(obstacle.rect) and player.yVelocity > 0:
-#             player.jump()
-#             player.update_obstacle(obstacle.id)
-#         done = obstacle.draw(offset)
-#         if (done):
-#             print(obstacles[len(obstacles) - 1].rect.y - 200)
-#             obstacles.append(Obstacle(GREEN_OBSTACLE, random.randint(100, 900), obstacles[len(obstacles) - 1].rect.y - 200, obstacle.id + 6))
-#             obstacles.remove(obstacle)
-#     pygame.display.update()
 
 def eval_genomes(genomes, config):
     global obstacles, players, ge, nets, generation, max_score, max_plot, mean_plot
