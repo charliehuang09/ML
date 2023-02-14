@@ -33,7 +33,7 @@ class ShowerEnv(Env):
             done = False
         
         # Apply temperature noise
-        # self.state += random.randint(-1,1)
+        self.state += random.randint(-1,1)
         # Set placeholder for info
         info = {}
         
