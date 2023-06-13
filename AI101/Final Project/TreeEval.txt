@@ -1,0 +1,8 @@
+Criterion:
+    Gini: 44
+    Entropy: 48
+    Log Loss: 47
+
+Splitter:
+    Best: 48
+    Random: 44
